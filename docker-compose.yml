@@ -1,9 +1,6 @@
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: urban-ko-admin:dev
+    image: welannn/urban-ko-admin:staging
     ports:
       - "5173:80"
     environment:
