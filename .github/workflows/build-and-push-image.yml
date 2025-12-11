@@ -2,7 +2,7 @@ name: Build & Push Frontend
  
 on:
     push:
-        branches: [staging]
+        branches: [staging, prod]
  
 jobs:
     build-and-push:
@@ -22,7 +22,7 @@ jobs:
             - name: Set docker image tag
               id: vars
               run: |
-                  if [ "${GITHUB_REF##*/}" = "main" ]; then
+                  if [ "${GITHUB_REF##*/}" = "prod" ]; then
                     echo "TAG=production" >> $GITHUB_OUTPUT
                   else
                     echo "TAG=staging" >> $GITHUB_OUTPUT
