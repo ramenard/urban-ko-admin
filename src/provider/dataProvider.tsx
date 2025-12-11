@@ -1,6 +1,6 @@
 import { DataProvider } from "react-admin";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_APP_API_URL;
 
 const token = localStorage.getItem("token");
 
