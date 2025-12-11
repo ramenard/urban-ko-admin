@@ -2,7 +2,7 @@ name: Build & Push Frontend
 
 on:
     push:
-        branches: [dev, staging, prod]
+        branches: [staging, prod]
 
 jobs:
     build-and-push:
@@ -24,10 +24,8 @@ jobs:
               run: |
                 if [ "${{ github.ref_name }}" = "prod" ]; then
                   echo "TAG=production" >> $GITHUB_OUTPUT
-                elif [ "${{ github.ref_name }}" = "staging" ]; then
-                  echo "TAG=staging" >> $GITHUB_OUTPUT
                 else
-                  echo "TAG=dev" >> $GITHUB_OUTPUT
+                  echo "TAG=staging" >> $GITHUB_OUTPUT
                 fi
 
             - uses: docker/build-push-action@v4
