@@ -7,25 +7,33 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 
-# Créer un utilisateur non-root
-RUN addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx 2>/dev/null || true
-
-# Copier la configuration nginx
-RUN rm /etc/nginx/conf.d/default.conf
+# Copier la configuration nginx AVANT de changer les permissions
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copier les fichiers buildés
-COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Créer les répertoires nécessaires avec les bonnes permissions
-RUN touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid && \
+# Modifier la config nginx pour qu'elle fonctionne en non-root
+RUN sed -i 's/listen\s*80;/listen 8080;/' /etc/nginx/conf.d/default.conf && \
+    # Créer les répertoires nécessaires
+    mkdir -p /var/cache/nginx/client_temp && \
+    mkdir -p /var/cache/nginx/proxy_temp && \
+    mkdir -p /var/cache/nginx/fastcgi_temp && \
+    mkdir -p /var/cache/nginx/uwsgi_temp && \
+    mkdir -p /var/cache/nginx/scgi_temp && \
+    # Donner les permissions à nginx
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
+    chown -R nginx:nginx /etc/nginx/conf.d && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
+    # Modifier nginx.conf principal pour ne pas utiliser de PID file
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
 
-# Passer à l'utilisateur non-root
+# Modifier le nginx.conf principal
+RUN sed -i '/user/d' /etc/nginx/nginx.conf && \
+    sed -i 's,/var/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf
+
 USER nginx
 
 EXPOSE 8080
