@@ -28,6 +28,6 @@ RUN touch /var/run/nginx.pid && \
 # Passer à l'utilisateur non-root
 USER nginx
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
