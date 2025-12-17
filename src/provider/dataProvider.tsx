@@ -1,8 +1,9 @@
 import { DataProvider } from "react-admin";
 
-const API_URL = "http://localhost/api";
+// Utiliser une URL relative pour que ça fonctionne en dev et prod
+const API_URL = import.meta.env.VITE_APP_API_URL || "/api";
 
-const token = localStorage.getItem("token");
+const getToken = () => localStorage.getItem("token");
 
 export const dataProvider: DataProvider = {
   async getList(resource) {
@@ -11,15 +12,20 @@ export const dataProvider: DataProvider = {
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${resource}`);
+    }
+
     const rawData = await response.json();
     const data = rawData.map((item: { _id: string }) => ({
       ...item,
       id: item._id,
     }));
-    const total: number = data.length; // standard JSON-server
+    const total: number = data.length;
 
     return { data, total };
   },
@@ -28,9 +34,14 @@ export const dataProvider: DataProvider = {
     const response = await fetch(`${API_URL}/${resource}/${params.id}`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${resource}/${params.id}`);
+    }
+
     const rawData = await response.json();
     const data = { id: rawData._id, ...rawData };
     return { data };
@@ -44,11 +55,15 @@ export const dataProvider: DataProvider = {
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
-    const data = await response.json();
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${resource}`);
+    }
+
+    const data = await response.json();
     return { data };
   },
 
@@ -57,10 +72,14 @@ export const dataProvider: DataProvider = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       body: JSON.stringify(params.data),
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create ${resource}`);
+    }
 
     const data = await response.json();
     return { data };
@@ -71,10 +90,14 @@ export const dataProvider: DataProvider = {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       body: JSON.stringify(params.data),
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update ${resource}/${params.id}`);
+    }
 
     const rawData = await response.json();
     const data = { id: rawData._id, ...rawData };
@@ -87,28 +110,29 @@ export const dataProvider: DataProvider = {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete ${resource}/${params.id}`);
+    }
 
     const data = await response.json();
     return { data };
   },
 
-  // Tu peux laisser les autres méthodes plus tard
   getManyReference: () => Promise.resolve({ data: [], total: 0 }),
   updateMany: () => Promise.resolve({ data: [] }),
 
   async deleteMany(resource, params) {
-    const token = localStorage.getItem("token");
-
     await Promise.all(
       params.ids.map((id) =>
         fetch(`${API_URL}/${resource}/${id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }),
       ),

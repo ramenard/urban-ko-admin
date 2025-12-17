@@ -1,5 +1,6 @@
 import { SimpleForm, TextInput, Edit, NumberInput } from "react-admin";
 
+//Component to edit a user
 export const UserEdit = () => (
   <Edit>
     <SimpleForm>
