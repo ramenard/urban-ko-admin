@@ -1,5 +1,8 @@
 import { HttpError } from "react-admin";
 
+// Utiliser une URL relative
+const API_URL = import.meta.env.VITE_APP_API_URL || "";
+
 export const authProvider = {
   login: async ({
     username,
@@ -8,14 +11,17 @@ export const authProvider = {
     username: string;
     password: string;
   }) => {
-    const response = await fetch(`http://localhost/api/users/login`, {
+    const response = await fetch(`${API_URL}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: username, password }),
     });
 
     if (!response.ok) {
-      throw new Error("Login failed");
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Login failed" }));
+      throw new Error(error.message || "Login failed");
     }
 
     const { token } = await response.json();
