@@ -1,7 +1,7 @@
 import { DataProvider } from "react-admin";
 
 // Utiliser une URL relative pour que ça fonctionne en dev et prod
-const API_URL = import.meta.env.VITE_APP_API_URL || "";
+const API_URL = import.meta.env.VITE_APP_API_URL || "/api";
 
 const getToken = () => localStorage.getItem("token");
 

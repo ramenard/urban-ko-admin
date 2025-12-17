@@ -1,7 +1,7 @@
 import { HttpError } from "react-admin";
 
 // Utiliser une URL relative
-const API_URL = import.meta.env.VITE_APP_API_URL || "";
+const API_URL = import.meta.env.VITE_APP_API_URL || "/api";
 
 export const authProvider = {
   login: async ({
