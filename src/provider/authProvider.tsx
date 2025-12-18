@@ -1,6 +1,5 @@
 import { HttpError } from "react-admin";
 
-// Utiliser une URL relative
 const API_URL = import.meta.env.VITE_APP_API_URL || "/api";
 
 export const authProvider = {
@@ -20,20 +19,27 @@ export const authProvider = {
     if (!response.ok) {
       const error = await response
         .json()
-        .catch(() => ({ message: "Login failed" }));
+        .catch(() => ({ message: "Identifiants invalides" }));
       throw new Error(error.message || "Login failed");
     }
 
-    const { token } = await response.json();
+    const { token, user } = await response.json();
 
-    // 🔐 On stocke le token dans localStorage
+    // 🔒 Vérification du rôle
+    if (!user || user.role !== "admin") {
+      throw new Error("Accès refusé : vous n’êtes pas administrateur");
+    }
+
+    // 🔐 Stockage
     localStorage.setItem("token", token);
+    localStorage.setItem("role", user.role);
 
     return Promise.resolve();
   },
 
   logout: () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     return Promise.resolve();
   },
 
@@ -43,10 +49,14 @@ export const authProvider = {
   checkError: (error: HttpError) => {
     if (error.status === 401 || error.status === 403) {
       localStorage.removeItem("token");
+      localStorage.removeItem("role");
       return Promise.reject();
     }
     return Promise.resolve();
   },
 
-  getPermissions: () => Promise.resolve(),
+  getPermissions: () => {
+    const role = localStorage.getItem("role");
+    return Promise.resolve(role);
+  },
 };
